@@ -13,6 +13,7 @@ import com.orbitbook.auth.mapper.UserMapper;
 import com.orbitbook.auth.repository.RoleRepository;
 import com.orbitbook.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,30 +39,32 @@ public class AuthService {
     public UserResponseDTO register(RegisterDTO dto) {
 
         if (userRepository.existsByEmail(dto.getEmail())) {
+
             throw new UserAlreadyExistsException(
                     "Email já cadastrado"
             );
         }
 
-        Role role = roleRepository
-                .findByNameRole(dto.getRoleName())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Role não encontrada"
-                        )
-                );
+        Role role =
+                roleRepository.findByNameRole(dto.getRoleName())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Role não encontrada"
+                                )
+                        );
 
-        UserOrbit user = UserOrbit.builder()
-                .name(dto.getName())
-                .email(dto.getEmail())
-                .passwordHash(
-                        passwordEncoder.encode(
-                                dto.getPassword()
+        UserOrbit user =
+                UserOrbit.builder()
+                        .name(dto.getName())
+                        .email(dto.getEmail())
+                        .passwordHash(
+                                passwordEncoder.encode(
+                                        dto.getPassword()
+                                )
                         )
-                )
-                .createdAt(LocalDateTime.now())
-                .role(role)
-                .build();
+                        .createdAt(LocalDateTime.now())
+                        .role(role)
+                        .build();
 
         user = userRepository.save(user);
 
@@ -70,13 +73,13 @@ public class AuthService {
 
     public AuthResponseDTO login(LoginDTO dto) {
 
-        UserOrbit user = userRepository
-                .findByEmail(dto.getEmail())
-                .orElseThrow(() ->
-                        new InvalidCredentialsException(
-                                "Email ou senha inválidos"
-                        )
-                );
+        UserOrbit user =
+                userRepository.findByEmail(dto.getEmail())
+                        .orElseThrow(() ->
+                                new InvalidCredentialsException(
+                                        "Email ou senha inválidos"
+                                )
+                        );
 
         boolean passwordMatches =
                 passwordEncoder.matches(
@@ -85,6 +88,7 @@ public class AuthService {
                 );
 
         if (!passwordMatches) {
+
             throw new InvalidCredentialsException(
                     "Email ou senha inválidos"
             );
@@ -94,7 +98,11 @@ public class AuthService {
                 new User(
                         user.getEmail(),
                         user.getPasswordHash(),
-                        List.of()
+                        List.of(
+                                new SimpleGrantedAuthority(
+                                        user.getRole().getNameRole()
+                                )
+                        )
                 );
 
         String token =

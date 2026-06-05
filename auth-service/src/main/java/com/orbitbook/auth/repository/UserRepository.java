@@ -12,5 +12,4 @@ public interface UserRepository extends JpaRepository<UserOrbit, Long> {
     Optional<UserOrbit> findByEmail(String email);
 
     boolean existsByEmail(String email);
-
 }
