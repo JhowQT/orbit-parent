@@ -25,6 +25,14 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+jwt:
+  secret: orbitbook-secret-key-orbitbook-secret-key-2026
+  expiration: 86400000
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
 management:
   endpoints:
     web:
