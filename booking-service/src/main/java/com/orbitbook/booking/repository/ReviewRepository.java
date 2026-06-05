@@ -1,6 +1,18 @@
 package com.orbitbook.booking.repository;
 
-public interface ReviewRepository {
-    
-}
+import com.orbitbook.booking.entity.Review;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
+@Repository
+public interface ReviewRepository
+        extends JpaRepository<Review, Long> {
+
+    List<Review> findByBooking_IdBookings(
+            Long bookingId
+    );
+
+    List<Review> findByRating(Integer rating);
+}
