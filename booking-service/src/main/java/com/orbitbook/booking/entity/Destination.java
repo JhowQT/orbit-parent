@@ -1,12 +1,9 @@
 package com.orbitbook.booking.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,7 +31,7 @@ public class Destination {
     private Integer distanceKm;
 
     @Column(name = "BASE_PRICE", nullable = false)
-    private Integer basePrice;
+    private BigDecimal basePrice;
 
     @Column(name = "CAPACITY", nullable = false)
     private Integer capacity;

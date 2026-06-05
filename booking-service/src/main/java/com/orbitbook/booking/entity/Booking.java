@@ -1,11 +1,7 @@
 package com.orbitbook.booking.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -43,7 +39,7 @@ public class Booking {
     @Column(name = "ID_USERS_ORBIT", nullable = false)
     private Long userId;
 
-    @Column(name = "ID_AI_RECOMENDATION", nullable = false)
+    @Column(name = "ID_AI_RECOMENDATION")
     private Long aiRecommendationId;
 
     @ManyToOne(fetch = FetchType.EAGER)
