@@ -1,13 +1,13 @@
-package com.orbitbook.authservice.repository;
+package com.orbitbook.auth.repository;
 
-import com.orbitbook.authservice.entity.UserOrbit;
+import com.orbitbook.auth.entity.UserOrbit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserOrbit, Integer> {
+public interface UserRepository extends JpaRepository<UserOrbit, Long> {
 
     Optional<UserOrbit> findByEmail(String email);
 
