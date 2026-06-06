@@ -1,12 +1,14 @@
 package com.orbitbook.booking.feign;
 
+import com.orbitbook.booking.config.FeignConfig;
 import com.orbitbook.booking.feign.dto.AiRecommendationDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(
-        name = "ai-service"
+        name = "ai-service",
+        configuration = FeignConfig.class
 )
 public interface AiClient {
 

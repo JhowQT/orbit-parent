@@ -22,11 +22,22 @@ import java.util.List;
 public class ReviewService {
 
     private final ReviewRepository repository;
+
     private final BookingRepository bookingRepository;
+
     private final ReviewMapper mapper;
 
     public ReviewResponseDTO createReview(
             ReviewCreateDTO dto) {
+
+        if (dto.getRating() == null
+                || dto.getRating() < 1
+                || dto.getRating() > 5) {
+
+            throw new IllegalArgumentException(
+                    "A nota deve estar entre 1 e 5."
+            );
+        }
 
         Booking booking =
                 bookingRepository.findById(
@@ -52,7 +63,9 @@ public class ReviewService {
         Review saved =
                 repository.save(review);
 
-        return mapper.toResponseDTO(saved);
+        return mapper.toResponseDTO(
+                saved
+        );
     }
 
     @Transactional(readOnly = true)
@@ -108,6 +121,15 @@ public class ReviewService {
                                 )
                         );
 
+        if (dto.getRating() == null
+                || dto.getRating() < 1
+                || dto.getRating() > 5) {
+
+            throw new IllegalArgumentException(
+                    "A nota deve estar entre 1 e 5."
+            );
+        }
+
         review.setRating(
                 dto.getRating()
         );
@@ -119,10 +141,13 @@ public class ReviewService {
         Review updated =
                 repository.save(review);
 
-        return mapper.toResponseDTO(updated);
+        return mapper.toResponseDTO(
+                updated
+        );
     }
 
-    public void delete(Long id) {
+    public void delete(
+            Long id) {
 
         Review review =
                 repository.findById(id)
@@ -133,6 +158,8 @@ public class ReviewService {
                                 )
                         );
 
-        repository.delete(review);
+        repository.delete(
+                review
+        );
     }
 }

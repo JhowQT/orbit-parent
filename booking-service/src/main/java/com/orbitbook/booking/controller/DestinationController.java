@@ -3,8 +3,11 @@ package com.orbitbook.booking.controller;
 import com.orbitbook.booking.dto.destination.DestinationCreateDTO;
 import com.orbitbook.booking.dto.destination.DestinationResponseDTO;
 import com.orbitbook.booking.dto.destination.DestinationUpdateDTO;
+import com.orbitbook.booking.hateoas.DestinationModelAssembler;
 import com.orbitbook.booking.service.DestinationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,59 +19,93 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DestinationController {
 
-    private final DestinationService service;
+```
+private final DestinationService service;
 
-    @PostMapping
-    public ResponseEntity<DestinationResponseDTO> create(
-            @RequestBody DestinationCreateDTO dto) {
+private final DestinationModelAssembler assembler;
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(service.create(dto));
-    }
+@PostMapping
+public ResponseEntity<EntityModel<DestinationResponseDTO>> create(
+        @RequestBody DestinationCreateDTO dto) {
 
-    @GetMapping("/{id}")
-    public ResponseEntity<DestinationResponseDTO> findById(
-            @PathVariable Long id) {
+    DestinationResponseDTO response =
+            service.create(dto);
 
-        return ResponseEntity.ok(
-                service.findById(id)
-        );
-    }
+    return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(
+                    assembler.toModel(response)
+            );
+}
 
-    @GetMapping
-    public ResponseEntity<List<DestinationResponseDTO>> findAll() {
+@GetMapping("/{id}")
+public ResponseEntity<EntityModel<DestinationResponseDTO>> findById(
+        @PathVariable Long id) {
 
-        return ResponseEntity.ok(
-                service.findAll()
-        );
-    }
+    return ResponseEntity.ok(
+            assembler.toModel(
+                    service.findById(id)
+            )
+    );
+}
 
-    @GetMapping("/search")
-    public ResponseEntity<List<DestinationResponseDTO>> searchByName(
-            @RequestParam String name) {
+@GetMapping
+public ResponseEntity<
+        CollectionModel<
+                EntityModel<DestinationResponseDTO>
+                >
+        > findAll() {
 
-        return ResponseEntity.ok(
-                service.searchByName(name)
-        );
-    }
+    List<EntityModel<DestinationResponseDTO>> destinations =
+            service.findAll()
+                    .stream()
+                    .map(assembler::toModel)
+                    .toList();
 
-    @PutMapping("/{id}")
-    public ResponseEntity<DestinationResponseDTO> update(
-            @PathVariable Long id,
-            @RequestBody DestinationUpdateDTO dto) {
+    return ResponseEntity.ok(
+            CollectionModel.of(destinations)
+    );
+}
 
-        return ResponseEntity.ok(
-                service.update(id, dto)
-        );
-    }
+@GetMapping("/search")
+public ResponseEntity<
+        CollectionModel<
+                EntityModel<DestinationResponseDTO>
+                >
+        > searchByName(
+        @RequestParam String name) {
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-            @PathVariable Long id) {
+    List<EntityModel<DestinationResponseDTO>> destinations =
+            service.searchByName(name)
+                    .stream()
+                    .map(assembler::toModel)
+                    .toList();
 
-        service.delete(id);
+    return ResponseEntity.ok(
+            CollectionModel.of(destinations)
+    );
+}
 
-        return ResponseEntity.noContent().build();
-    }
+@PutMapping("/{id}")
+public ResponseEntity<EntityModel<DestinationResponseDTO>> update(
+        @PathVariable Long id,
+        @RequestBody DestinationUpdateDTO dto) {
+
+    return ResponseEntity.ok(
+            assembler.toModel(
+                    service.update(id, dto)
+            )
+    );
+}
+
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> delete(
+        @PathVariable Long id) {
+
+    service.delete(id);
+
+    return ResponseEntity.noContent().build();
+}
+```
+
 }

@@ -22,11 +22,29 @@ import java.util.List;
 public class PassengerService {
 
     private final PassengerRepository repository;
+
     private final BookingRepository bookingRepository;
+
     private final PassengerMapper mapper;
 
     public PassengerResponseDTO create(
             PassengerCreateDTO dto) {
+
+        if (dto.getCpf() == null
+                || dto.getCpf().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "CPF é obrigatório."
+            );
+        }
+
+        if (repository.existsByCpf(
+                dto.getCpf())) {
+
+            throw new IllegalArgumentException(
+                    "Já existe um passageiro cadastrado com este CPF."
+            );
+        }
 
         Booking booking =
                 bookingRepository.findById(
@@ -52,7 +70,9 @@ public class PassengerService {
         Passenger saved =
                 repository.save(passenger);
 
-        return mapper.toResponseDTO(saved);
+        return mapper.toResponseDTO(
+                saved
+        );
     }
 
     @Transactional(readOnly = true)
@@ -95,6 +115,30 @@ public class PassengerService {
                                 )
                         );
 
+        if (dto.getCpf() == null
+                || dto.getCpf().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "CPF é obrigatório."
+            );
+        }
+
+        repository.findByCpf(
+                        dto.getCpf()
+                )
+                .ifPresent(existing -> {
+
+                    if (!existing.getIdPassagers()
+                            .equals(
+                                    passenger.getIdPassagers()
+                            )) {
+
+                        throw new IllegalArgumentException(
+                                "Já existe um passageiro cadastrado com este CPF."
+                        );
+                    }
+                });
+
         passenger.setName(
                 dto.getName()
         );
@@ -110,10 +154,13 @@ public class PassengerService {
         Passenger updated =
                 repository.save(passenger);
 
-        return mapper.toResponseDTO(updated);
+        return mapper.toResponseDTO(
+                updated
+        );
     }
 
-    public void delete(Long id) {
+    public void delete(
+            Long id) {
 
         Passenger passenger =
                 repository.findById(id)
@@ -124,6 +171,8 @@ public class PassengerService {
                                 )
                         );
 
-        repository.delete(passenger);
+        repository.delete(
+                passenger
+        );
     }
 }

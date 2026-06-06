@@ -3,8 +3,11 @@ package com.orbitbook.booking.controller;
 import com.orbitbook.booking.dto.review.ReviewCreateDTO;
 import com.orbitbook.booking.dto.review.ReviewResponseDTO;
 import com.orbitbook.booking.dto.review.ReviewUpdateDTO;
+import com.orbitbook.booking.hateoas.ReviewModelAssembler;
 import com.orbitbook.booking.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,59 +19,93 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReviewController {
 
-    private final ReviewService service;
+```
+private final ReviewService service;
 
-    @PostMapping
-    public ResponseEntity<ReviewResponseDTO> create(
-            @RequestBody ReviewCreateDTO dto) {
+private final ReviewModelAssembler assembler;
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(service.createReview(dto));
-    }
+@PostMapping
+public ResponseEntity<EntityModel<ReviewResponseDTO>> create(
+        @RequestBody ReviewCreateDTO dto) {
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ReviewResponseDTO> findById(
-            @PathVariable Long id) {
+    ReviewResponseDTO response =
+            service.createReview(dto);
 
-        return ResponseEntity.ok(
-                service.findById(id)
-        );
-    }
+    return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(
+                    assembler.toModel(response)
+            );
+}
 
-    @GetMapping
-    public ResponseEntity<List<ReviewResponseDTO>> findAll() {
+@GetMapping("/{id}")
+public ResponseEntity<EntityModel<ReviewResponseDTO>> findById(
+        @PathVariable Long id) {
 
-        return ResponseEntity.ok(
-                service.findAll()
-        );
-    }
+    return ResponseEntity.ok(
+            assembler.toModel(
+                    service.findById(id)
+            )
+    );
+}
 
-    @GetMapping("/booking/{bookingId}")
-    public ResponseEntity<List<ReviewResponseDTO>> findByBooking(
-            @PathVariable Long bookingId) {
+@GetMapping
+public ResponseEntity<
+        CollectionModel<
+                EntityModel<ReviewResponseDTO>
+                >
+        > findAll() {
 
-        return ResponseEntity.ok(
-                service.findByBooking(bookingId)
-        );
-    }
+    List<EntityModel<ReviewResponseDTO>> reviews =
+            service.findAll()
+                    .stream()
+                    .map(assembler::toModel)
+                    .toList();
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ReviewResponseDTO> update(
-            @PathVariable Long id,
-            @RequestBody ReviewUpdateDTO dto) {
+    return ResponseEntity.ok(
+            CollectionModel.of(reviews)
+    );
+}
 
-        return ResponseEntity.ok(
-                service.update(id, dto)
-        );
-    }
+@GetMapping("/booking/{bookingId}")
+public ResponseEntity<
+        CollectionModel<
+                EntityModel<ReviewResponseDTO>
+                >
+        > findByBooking(
+        @PathVariable Long bookingId) {
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-            @PathVariable Long id) {
+    List<EntityModel<ReviewResponseDTO>> reviews =
+            service.findByBooking(bookingId)
+                    .stream()
+                    .map(assembler::toModel)
+                    .toList();
 
-        service.delete(id);
+    return ResponseEntity.ok(
+            CollectionModel.of(reviews)
+    );
+}
 
-        return ResponseEntity.noContent().build();
-    }
+@PutMapping("/{id}")
+public ResponseEntity<EntityModel<ReviewResponseDTO>> update(
+        @PathVariable Long id,
+        @RequestBody ReviewUpdateDTO dto) {
+
+    return ResponseEntity.ok(
+            assembler.toModel(
+                    service.update(id, dto)
+            )
+    );
+}
+
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> delete(
+        @PathVariable Long id) {
+
+    service.delete(id);
+
+    return ResponseEntity.noContent().build();
+}
+```
+
 }

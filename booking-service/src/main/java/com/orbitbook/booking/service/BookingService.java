@@ -1,29 +1,3 @@
-package com.orbitbook.booking.service;
-
-import com.orbitbook.booking.dto.booking.BookingCreateDTO;
-import com.orbitbook.booking.dto.booking.BookingResponseDTO;
-import com.orbitbook.booking.dto.booking.BookingUpdateDTO;
-import com.orbitbook.booking.entity.Booking;
-import com.orbitbook.booking.entity.BookingStatus;
-import com.orbitbook.booking.entity.Destination;
-import com.orbitbook.booking.exception.BookingNotFoundException;
-import com.orbitbook.booking.exception.ResourceNotFoundException;
-import com.orbitbook.booking.feign.AuthClient;
-import com.orbitbook.booking.feign.dto.UserResponseDTO;
-import com.orbitbook.booking.mapper.BookingMapper;
-import com.orbitbook.booking.messaging.BookingProducer;
-import com.orbitbook.booking.messaging.dto.BookingCreatedEvent;
-import com.orbitbook.booking.repository.BookingRepository;
-import com.orbitbook.booking.repository.BookingStatusRepository;
-import com.orbitbook.booking.repository.DestinationRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -39,10 +13,36 @@ public class BookingService {
 
     private final AuthClient authClient;
 
+    private final AiClient aiClient;
+
     private final BookingProducer bookingProducer;
 
     public BookingResponseDTO create(
             BookingCreateDTO dto) {
+
+        if (dto.getDepartureDate() == null
+                || dto.getReturnDate() == null) {
+
+            throw new IllegalArgumentException(
+                    "Datas de ida e volta são obrigatórias."
+            );
+        }
+
+        if (!dto.getDepartureDate()
+                .isBefore(dto.getReturnDate())) {
+
+            throw new IllegalArgumentException(
+                    "A data de ida deve ser anterior à data de volta."
+            );
+        }
+
+        if (dto.getNumPassengers() == null
+                || dto.getNumPassengers() <= 0) {
+
+            throw new IllegalArgumentException(
+                    "A quantidade de passageiros deve ser maior que zero."
+            );
+        }
 
         UserResponseDTO user =
                 authClient.findUserById(
@@ -50,8 +50,16 @@ public class BookingService {
                 );
 
         if (user == null) {
+
             throw new ResourceNotFoundException(
                     "Usuário não encontrado."
+            );
+        }
+
+        if (dto.getAiRecommendationId() != null) {
+
+            aiClient.findRecommendationById(
+                    dto.getAiRecommendationId()
             );
         }
 
@@ -67,6 +75,14 @@ public class BookingService {
                                 )
                         );
 
+        if (dto.getNumPassengers()
+                > destination.getCapacity()) {
+
+            throw new IllegalArgumentException(
+                    "Quantidade de passageiros excede a capacidade do destino."
+            );
+        }
+
         BookingStatus bookingStatus =
                 bookingStatusRepository
                         .findByName("PENDING")
@@ -79,9 +95,7 @@ public class BookingService {
         Booking booking =
                 mapper.toEntity(dto);
 
-        booking.setDestination(
-                destination
-        );
+        booking.setDestination(destination);
 
         booking.setBookingStatus(
                 bookingStatus
@@ -101,7 +115,9 @@ public class BookingService {
         );
 
         Booking saved =
-                repository.save(booking);
+                repository.save(
+                        booking
+                );
 
         bookingProducer.sendBookingCreated(
                 BookingCreatedEvent.builder()
@@ -123,7 +139,9 @@ public class BookingService {
                         .build()
         );
 
-        return mapper.toResponseDTO(saved);
+        return mapper.toResponseDTO(
+                saved
+        );
     }
 
     @Transactional(readOnly = true)
@@ -133,7 +151,7 @@ public class BookingService {
         Booking booking =
                 repository.findById(id)
                         .orElseThrow(() ->
-                                new BookingNotFoundException(
+                                new ResourceNotFoundException(
                                         "Reserva não encontrada. ID: "
                                                 + id
                                 )
@@ -172,11 +190,26 @@ public class BookingService {
         Booking booking =
                 repository.findById(id)
                         .orElseThrow(() ->
-                                new BookingNotFoundException(
+                                new ResourceNotFoundException(
                                         "Reserva não encontrada. ID: "
                                                 + id
                                 )
                         );
+
+        if (!dto.getDepartureDate()
+                .isBefore(dto.getReturnDate())) {
+
+            throw new IllegalArgumentException(
+                    "A data de ida deve ser anterior à data de volta."
+            );
+        }
+
+        if (dto.getNumPassengers() <= 0) {
+
+            throw new IllegalArgumentException(
+                    "A quantidade de passageiros deve ser maior que zero."
+            );
+        }
 
         Destination destination =
                 destinationRepository
@@ -189,6 +222,14 @@ public class BookingService {
                                                 + dto.getDestinationId()
                                 )
                         );
+
+        if (dto.getNumPassengers()
+                > destination.getCapacity()) {
+
+            throw new IllegalArgumentException(
+                    "Quantidade de passageiros excede a capacidade do destino."
+            );
+        }
 
         BookingStatus bookingStatus =
                 bookingStatusRepository
@@ -232,9 +273,13 @@ public class BookingService {
         );
 
         Booking updated =
-                repository.save(booking);
+                repository.save(
+                        booking
+                );
 
-        return mapper.toResponseDTO(updated);
+        return mapper.toResponseDTO(
+                updated
+        );
     }
 
     public BookingResponseDTO cancelBooking(
@@ -243,11 +288,20 @@ public class BookingService {
         Booking booking =
                 repository.findById(id)
                         .orElseThrow(() ->
-                                new BookingNotFoundException(
+                                new ResourceNotFoundException(
                                         "Reserva não encontrada. ID: "
                                                 + id
                                 )
                         );
+
+        if ("CANCELLED".equalsIgnoreCase(
+                booking.getBookingStatus()
+                        .getName())) {
+
+            throw new IllegalArgumentException(
+                    "A reserva já está cancelada."
+            );
+        }
 
         BookingStatus cancelledStatus =
                 bookingStatusRepository
@@ -265,22 +319,29 @@ public class BookingService {
         );
 
         Booking updated =
-                repository.save(booking);
+                repository.save(
+                        booking
+                );
 
-        return mapper.toResponseDTO(updated);
+        return mapper.toResponseDTO(
+                updated
+        );
     }
 
-    public void delete(Long id) {
+    public void delete(
+            Long id) {
 
         Booking booking =
                 repository.findById(id)
                         .orElseThrow(() ->
-                                new BookingNotFoundException(
+                                new ResourceNotFoundException(
                                         "Reserva não encontrada. ID: "
                                                 + id
                                 )
                         );
 
-        repository.delete(booking);
+        repository.delete(
+                booking
+        );
     }
 }

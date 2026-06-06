@@ -4,6 +4,7 @@ import com.orbitbook.booking.dto.payment.PaymentCreateDTO;
 import com.orbitbook.booking.dto.payment.PaymentResponseDTO;
 import com.orbitbook.booking.dto.payment.PaymentUpdateDTO;
 import com.orbitbook.booking.entity.Booking;
+import com.orbitbook.booking.entity.BookingStatus;
 import com.orbitbook.booking.entity.Payment;
 import com.orbitbook.booking.exception.InvalidPaymentException;
 import com.orbitbook.booking.exception.ResourceNotFoundException;
@@ -11,11 +12,13 @@ import com.orbitbook.booking.mapper.PaymentMapper;
 import com.orbitbook.booking.messaging.PaymentProducer;
 import com.orbitbook.booking.messaging.dto.PaymentApprovedEvent;
 import com.orbitbook.booking.repository.BookingRepository;
+import com.orbitbook.booking.repository.BookingStatusRepository;
 import com.orbitbook.booking.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,8 +28,13 @@ import java.util.List;
 public class PaymentService {
 
     private final PaymentRepository repository;
+
     private final BookingRepository bookingRepository;
+
+    private final BookingStatusRepository bookingStatusRepository;
+
     private final PaymentMapper mapper;
+
     private final PaymentProducer paymentProducer;
 
     public PaymentResponseDTO createPayment(
@@ -41,6 +49,22 @@ public class PaymentService {
                                                 + dto.getBookingId()
                                 )
                         );
+
+        if (dto.getAmount() == null
+                || dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+
+            throw new InvalidPaymentException(
+                    "Valor do pagamento inválido."
+            );
+        }
+
+        if (dto.getAmount().compareTo(
+                booking.getTotalPrice()) != 0) {
+
+            throw new InvalidPaymentException(
+                    "O valor informado deve ser igual ao valor da reserva."
+            );
+        }
 
         Payment payment =
                 mapper.toEntity(dto);
@@ -72,7 +96,9 @@ public class PaymentService {
                                 )
                         );
 
-        return mapper.toResponseDTO(payment);
+        return mapper.toResponseDTO(
+                payment
+        );
     }
 
     @Transactional(readOnly = true)
@@ -109,6 +135,14 @@ public class PaymentService {
                                                 + id
                                 )
                         );
+
+        if (dto.getAmount() == null
+                || dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+
+            throw new InvalidPaymentException(
+                    "Valor do pagamento inválido."
+            );
+        }
 
         payment.setMethod(
                 dto.getMethod()
@@ -159,6 +193,28 @@ public class PaymentService {
         Payment updated =
                 repository.save(payment);
 
+        Booking booking =
+                updated.getBooking();
+
+        BookingStatus confirmedStatus =
+                bookingStatusRepository
+                        .findByName(
+                                "CONFIRMED"
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Status CONFIRMED não encontrado."
+                                )
+                        );
+
+        booking.setBookingStatus(
+                confirmedStatus
+        );
+
+        bookingRepository.save(
+                booking
+        );
+
         paymentProducer.sendPaymentApproved(
                 PaymentApprovedEvent.builder()
                         .paymentId(
@@ -177,10 +233,13 @@ public class PaymentService {
                         .build()
         );
 
-        return mapper.toResponseDTO(updated);
+        return mapper.toResponseDTO(
+                updated
+        );
     }
 
-    public void delete(Long id) {
+    public void delete(
+            Long id) {
 
         Payment payment =
                 repository.findById(id)
@@ -191,6 +250,8 @@ public class PaymentService {
                                 )
                         );
 
-        repository.delete(payment);
+        repository.delete(
+                payment
+        );
     }
 }

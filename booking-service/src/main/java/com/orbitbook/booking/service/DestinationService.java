@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,15 +23,21 @@ import java.util.List;
 public class DestinationService {
 
     private final DestinationRepository repository;
+
     private final DestinationTypeRepository destinationTypeRepository;
+
     private final DestinationMapper mapper;
 
     public DestinationResponseDTO create(
             DestinationCreateDTO dto) {
 
+        validateDestination(dto);
+
         DestinationType destinationType =
                 destinationTypeRepository
-                        .findById(dto.getDestinationTypeId())
+                        .findById(
+                                dto.getDestinationTypeId()
+                        )
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Tipo de destino não encontrado. ID: "
@@ -86,6 +93,8 @@ public class DestinationService {
             Long id,
             DestinationUpdateDTO dto) {
 
+        validateDestination(dto);
+
         Destination destination =
                 repository.findById(id)
                         .orElseThrow(() ->
@@ -97,7 +106,9 @@ public class DestinationService {
 
         DestinationType destinationType =
                 destinationTypeRepository
-                        .findById(dto.getDestinationTypeId())
+                        .findById(
+                                dto.getDestinationTypeId()
+                        )
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Tipo de destino não encontrado. ID: "
@@ -139,7 +150,8 @@ public class DestinationService {
         return mapper.toResponseDTO(updated);
     }
 
-    public void delete(Long id) {
+    public void delete(
+            Long id) {
 
         Destination destination =
                 repository.findById(id)
@@ -158,9 +170,115 @@ public class DestinationService {
             String name) {
 
         return repository
-                .findByNameContainingIgnoreCase(name)
+                .findByNameContainingIgnoreCase(
+                        name
+                )
                 .stream()
                 .map(mapper::toResponseDTO)
                 .toList();
+    }
+
+    private void validateDestination(
+            DestinationCreateDTO dto) {
+
+        if (dto.getName() == null
+                || dto.getName().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Nome do destino é obrigatório."
+            );
+        }
+
+        if (dto.getDescription() == null
+                || dto.getDescription().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Descrição do destino é obrigatória."
+            );
+        }
+
+        if (dto.getImageUrl() == null
+                || dto.getImageUrl().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Imagem do destino é obrigatória."
+            );
+        }
+
+        if (dto.getDistanceKm() == null
+                || dto.getDistanceKm() <= 0) {
+
+            throw new IllegalArgumentException(
+                    "A distância deve ser maior que zero."
+            );
+        }
+
+        if (dto.getCapacity() == null
+                || dto.getCapacity() <= 0) {
+
+            throw new IllegalArgumentException(
+                    "A capacidade deve ser maior que zero."
+            );
+        }
+
+        if (dto.getBasePrice() == null
+                || dto.getBasePrice().compareTo(BigDecimal.ZERO) <= 0) {
+
+            throw new IllegalArgumentException(
+                    "O preço base deve ser maior que zero."
+            );
+        }
+    }
+
+    private void validateDestination(
+            DestinationUpdateDTO dto) {
+
+        if (dto.getName() == null
+                || dto.getName().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Nome do destino é obrigatório."
+            );
+        }
+
+        if (dto.getDescription() == null
+                || dto.getDescription().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Descrição do destino é obrigatória."
+            );
+        }
+
+        if (dto.getImageUrl() == null
+                || dto.getImageUrl().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Imagem do destino é obrigatória."
+            );
+        }
+
+        if (dto.getDistanceKm() == null
+                || dto.getDistanceKm() <= 0) {
+
+            throw new IllegalArgumentException(
+                    "A distância deve ser maior que zero."
+            );
+        }
+
+        if (dto.getCapacity() == null
+                || dto.getCapacity() <= 0) {
+
+            throw new IllegalArgumentException(
+                    "A capacidade deve ser maior que zero."
+            );
+        }
+
+        if (dto.getBasePrice() == null
+                || dto.getBasePrice().compareTo(BigDecimal.ZERO) <= 0) {
+
+            throw new IllegalArgumentException(
+                    "O preço base deve ser maior que zero."
+            );
+        }
     }
 }

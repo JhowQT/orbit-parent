@@ -3,8 +3,11 @@ package com.orbitbook.booking.controller;
 import com.orbitbook.booking.dto.booking.BookingCreateDTO;
 import com.orbitbook.booking.dto.booking.BookingResponseDTO;
 import com.orbitbook.booking.dto.booking.BookingUpdateDTO;
+import com.orbitbook.booking.hateoas.BookingModelAssembler;
 import com.orbitbook.booking.service.BookingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,68 +19,104 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookingController {
 
-    private final BookingService service;
+```
+private final BookingService service;
 
-    @PostMapping
-    public ResponseEntity<BookingResponseDTO> create(
-            @RequestBody BookingCreateDTO dto) {
+private final BookingModelAssembler assembler;
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(service.create(dto));
-    }
+@PostMapping
+public ResponseEntity<EntityModel<BookingResponseDTO>> create(
+        @RequestBody BookingCreateDTO dto) {
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BookingResponseDTO> findById(
-            @PathVariable Long id) {
+    BookingResponseDTO response =
+            service.create(dto);
 
-        return ResponseEntity.ok(
-                service.findById(id)
-        );
-    }
+    return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(
+                    assembler.toModel(response)
+            );
+}
 
-    @GetMapping
-    public ResponseEntity<List<BookingResponseDTO>> findAll() {
+@GetMapping("/{id}")
+public ResponseEntity<EntityModel<BookingResponseDTO>> findById(
+        @PathVariable Long id) {
 
-        return ResponseEntity.ok(
-                service.findAll()
-        );
-    }
+    return ResponseEntity.ok(
+            assembler.toModel(
+                    service.findById(id)
+            )
+    );
+}
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BookingResponseDTO>> findByUser(
-            @PathVariable Long userId) {
+@GetMapping
+public ResponseEntity<
+        CollectionModel<
+                EntityModel<BookingResponseDTO>
+                >
+        > findAll() {
 
-        return ResponseEntity.ok(
-                service.findByUser(userId)
-        );
-    }
+    List<EntityModel<BookingResponseDTO>> bookings =
+            service.findAll()
+                    .stream()
+                    .map(assembler::toModel)
+                    .toList();
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BookingResponseDTO> update(
-            @PathVariable Long id,
-            @RequestBody BookingUpdateDTO dto) {
+    return ResponseEntity.ok(
+            CollectionModel.of(bookings)
+    );
+}
 
-        return ResponseEntity.ok(
-                service.update(id, dto)
-        );
-    }
+@GetMapping("/user/{userId}")
+public ResponseEntity<
+        CollectionModel<
+                EntityModel<BookingResponseDTO>
+                >
+        > findByUser(
+        @PathVariable Long userId) {
 
-    @PatchMapping("/{id}/cancel")
-    public ResponseEntity<BookingResponseDTO> cancelBooking(
-            @PathVariable Long id) {
+    List<EntityModel<BookingResponseDTO>> bookings =
+            service.findByUser(userId)
+                    .stream()
+                    .map(assembler::toModel)
+                    .toList();
 
-        return ResponseEntity.ok(
-                service.cancelBooking(id)
-        );
-    }
+    return ResponseEntity.ok(
+            CollectionModel.of(bookings)
+    );
+}
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-            @PathVariable Long id) {
+@PutMapping("/{id}")
+public ResponseEntity<EntityModel<BookingResponseDTO>> update(
+        @PathVariable Long id,
+        @RequestBody BookingUpdateDTO dto) {
 
-        service.delete(id);
+    return ResponseEntity.ok(
+            assembler.toModel(
+                    service.update(id, dto)
+            )
+    );
+}
 
-        return ResponseEntity.noContent().build();
-    }
+@PatchMapping("/{id}/cancel")
+public ResponseEntity<EntityModel<BookingResponseDTO>> cancelBooking(
+        @PathVariable Long id) {
+
+    return ResponseEntity.ok(
+            assembler.toModel(
+                    service.cancelBooking(id)
+            )
+    );
+}
+
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> delete(
+        @PathVariable Long id) {
+
+    service.delete(id);
+
+    return ResponseEntity.noContent().build();
+}
+```
+
 }
