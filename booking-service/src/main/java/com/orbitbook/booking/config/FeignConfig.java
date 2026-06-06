@@ -1,11 +1,15 @@
 package com.orbitbook.booking.config;
 
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import feign.Logger;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableFeignClients(
-        basePackages = "com.orbitbook.booking.feign"
-)
 public class FeignConfig {
+
+    @Bean
+    Logger.Level feignLoggerLevel() {
+
+        return Logger.Level.FULL;
+    }
 }

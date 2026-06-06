@@ -1,9 +1,9 @@
 package com.orbitbook.booking.controller;
 
-import com.orbitbook.booking.dto.review.ReviewCreateDTO;
-import com.orbitbook.booking.dto.review.ReviewResponseDTO;
-import com.orbitbook.booking.dto.review.ReviewUpdateDTO;
-import com.orbitbook.booking.service.ReviewService;
+import com.orbitbook.booking.dto.destinationtype.DestinationTypeCreateDTO;
+import com.orbitbook.booking.dto.destinationtype.DestinationTypeResponseDTO;
+import com.orbitbook.booking.dto.destinationtype.DestinationTypeUpdateDTO;
+import com.orbitbook.booking.service.DestinationTypeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,23 +12,23 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/reviews")
+@RequestMapping("/destination-types")
 @RequiredArgsConstructor
-public class ReviewController {
+public class DestinationTypeController {
 
-    private final ReviewService service;
+    private final DestinationTypeService service;
 
     @PostMapping
-    public ResponseEntity<ReviewResponseDTO> create(
-            @RequestBody ReviewCreateDTO dto) {
+    public ResponseEntity<DestinationTypeResponseDTO> create(
+            @RequestBody DestinationTypeCreateDTO dto) {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(service.createReview(dto));
+                .body(service.create(dto));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ReviewResponseDTO> findById(
+    public ResponseEntity<DestinationTypeResponseDTO> findById(
             @PathVariable Long id) {
 
         return ResponseEntity.ok(
@@ -37,26 +37,17 @@ public class ReviewController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ReviewResponseDTO>> findAll() {
+    public ResponseEntity<List<DestinationTypeResponseDTO>> findAll() {
 
         return ResponseEntity.ok(
                 service.findAll()
         );
     }
 
-    @GetMapping("/booking/{bookingId}")
-    public ResponseEntity<List<ReviewResponseDTO>> findByBooking(
-            @PathVariable Long bookingId) {
-
-        return ResponseEntity.ok(
-                service.findByBooking(bookingId)
-        );
-    }
-
     @PutMapping("/{id}")
-    public ResponseEntity<ReviewResponseDTO> update(
+    public ResponseEntity<DestinationTypeResponseDTO> update(
             @PathVariable Long id,
-            @RequestBody ReviewUpdateDTO dto) {
+            @RequestBody DestinationTypeUpdateDTO dto) {
 
         return ResponseEntity.ok(
                 service.update(id, dto)

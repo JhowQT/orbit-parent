@@ -10,49 +10,55 @@ public class RabbitConfig {
     public static final String EXCHANGE =
             "orbitbook.exchange";
 
-    public static final String BOOKING_QUEUE =
-            "booking.queue";
+    public static final String BOOKING_ROUTING_KEY =
+            "booking.created";
 
-    public static final String PAYMENT_QUEUE =
-            "payment.queue";
+    public static final String PAYMENT_ROUTING_KEY =
+            "payment.approved";
 
     @Bean
-    public TopicExchange exchange() {
+    public TopicExchange orbitbookExchange() {
 
-        return new TopicExchange(EXCHANGE);
+        return new TopicExchange(
+                EXCHANGE
+        );
     }
 
     @Bean
     public Queue bookingQueue() {
 
-        return new Queue(BOOKING_QUEUE);
+        return new Queue(
+                "booking.queue"
+        );
     }
 
     @Bean
     public Queue paymentQueue() {
 
-        return new Queue(PAYMENT_QUEUE);
+        return new Queue(
+                "payment.queue"
+        );
     }
 
     @Bean
     public Binding bookingBinding(
             Queue bookingQueue,
-            TopicExchange exchange) {
+            TopicExchange orbitbookExchange) {
 
         return BindingBuilder
                 .bind(bookingQueue)
-                .to(exchange)
-                .with("booking.created");
+                .to(orbitbookExchange)
+                .with(BOOKING_ROUTING_KEY);
     }
 
     @Bean
     public Binding paymentBinding(
             Queue paymentQueue,
-            TopicExchange exchange) {
+            TopicExchange orbitbookExchange) {
 
         return BindingBuilder
                 .bind(paymentQueue)
-                .to(exchange)
-                .with("payment.approved");
+                .to(orbitbookExchange)
+                .with(PAYMENT_ROUTING_KEY);
     }
 }
