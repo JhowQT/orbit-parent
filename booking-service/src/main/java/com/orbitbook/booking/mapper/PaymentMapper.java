@@ -1,5 +1,6 @@
 package com.orbitbook.booking.mapper;
 
+import com.orbitbook.booking.dto.payment.PaymentCreateDTO;
 import com.orbitbook.booking.dto.payment.PaymentResponseDTO;
 import com.orbitbook.booking.entity.Payment;
 import org.springframework.stereotype.Component;
@@ -20,10 +21,21 @@ public class PaymentMapper {
                 .amount(entity.getAmount())
                 .status(entity.getStatus())
                 .paidAt(entity.getPaidAt())
-                .bookingId(
-                        entity.getBooking()
-                                .getIdBookings()
-                )
+                .bookingId(entity.getBooking().getIdBookings())
+                .build();
+    }
+
+    public Payment toEntity(
+            PaymentCreateDTO dto) {
+
+        if (dto == null) {
+            return null;
+        }
+
+        return Payment.builder()
+                .method(dto.getMethod())
+                .amount(dto.getAmount())
+                .status(dto.getStatus())
                 .build();
     }
 }

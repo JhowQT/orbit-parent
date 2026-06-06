@@ -1,5 +1,6 @@
 package com.orbitbook.booking.mapper;
 
+import com.orbitbook.booking.dto.booking.BookingCreateDTO;
 import com.orbitbook.booking.dto.booking.BookingResponseDTO;
 import com.orbitbook.booking.entity.Booking;
 import org.springframework.stereotype.Component;
@@ -40,6 +41,24 @@ public class BookingMapper {
                 .bookingStatusName(
                         entity.getBookingStatus()
                                 .getName()
+                )
+                .build();
+    }
+
+    public Booking toEntity(
+            BookingCreateDTO dto) {
+
+        if (dto == null) {
+            return null;
+        }
+
+        return Booking.builder()
+                .departureDate(dto.getDepartureDate())
+                .returnDate(dto.getReturnDate())
+                .numPassengers(dto.getNumPassengers())
+                .userId(dto.getUserId())
+                .aiRecommendationId(
+                        dto.getAiRecommendationId()
                 )
                 .build();
     }

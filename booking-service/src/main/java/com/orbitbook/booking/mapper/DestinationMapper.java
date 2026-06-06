@@ -1,5 +1,6 @@
 package com.orbitbook.booking.mapper;
 
+import com.orbitbook.booking.dto.destination.DestinationCreateDTO;
 import com.orbitbook.booking.dto.destination.DestinationResponseDTO;
 import com.orbitbook.booking.entity.Destination;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,23 @@ public class DestinationMapper {
                         entity.getDestinationType()
                                 .getName()
                 )
+                .build();
+    }
+
+    public Destination toEntity(
+            DestinationCreateDTO dto) {
+
+        if (dto == null) {
+            return null;
+        }
+
+        return Destination.builder()
+                .name(dto.getName())
+                .description(dto.getDescription())
+                .distanceKm(dto.getDistanceKm())
+                .basePrice(dto.getBasePrice())
+                .capacity(dto.getCapacity())
+                .imageUrl(dto.getImageUrl())
                 .build();
     }
 }

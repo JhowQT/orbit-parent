@@ -1,5 +1,138 @@
 package com.orbitbook.booking.service;
 
-public interface ReviewService {
-    
-}   
+import com.orbitbook.booking.dto.review.ReviewCreateDTO;
+import com.orbitbook.booking.dto.review.ReviewResponseDTO;
+import com.orbitbook.booking.dto.review.ReviewUpdateDTO;
+import com.orbitbook.booking.entity.Booking;
+import com.orbitbook.booking.entity.Review;
+import com.orbitbook.booking.exception.ResourceNotFoundException;
+import com.orbitbook.booking.mapper.ReviewMapper;
+import com.orbitbook.booking.repository.BookingRepository;
+import com.orbitbook.booking.repository.ReviewRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class ReviewService {
+
+    private final ReviewRepository repository;
+    private final BookingRepository bookingRepository;
+    private final ReviewMapper mapper;
+
+    public ReviewResponseDTO createReview(
+            ReviewCreateDTO dto) {
+
+        Booking booking =
+                bookingRepository.findById(
+                                dto.getBookingId())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Reserva não encontrada. ID: "
+                                                + dto.getBookingId()
+                                )
+                        );
+
+        Review review =
+                mapper.toEntity(dto);
+
+        review.setBooking(
+                booking
+        );
+
+        review.setCreatedAt(
+                LocalDateTime.now()
+        );
+
+        Review saved =
+                repository.save(review);
+
+        return mapper.toResponseDTO(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public ReviewResponseDTO findById(
+            Long id) {
+
+        Review review =
+                repository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Avaliação não encontrada. ID: "
+                                                + id
+                                )
+                        );
+
+        return mapper.toResponseDTO(
+                review
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReviewResponseDTO> findAll() {
+
+        return repository.findAll()
+                .stream()
+                .map(mapper::toResponseDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReviewResponseDTO> findByBooking(
+            Long bookingId) {
+
+        return repository
+                .findByBooking_IdBookings(
+                        bookingId
+                )
+                .stream()
+                .map(mapper::toResponseDTO)
+                .toList();
+    }
+
+    public ReviewResponseDTO update(
+            Long id,
+            ReviewUpdateDTO dto) {
+
+        Review review =
+                repository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Avaliação não encontrada. ID: "
+                                                + id
+                                )
+                        );
+
+        review.setRating(
+                dto.getRating()
+        );
+
+        review.setComment(
+                dto.getComment()
+        );
+
+        Review updated =
+                repository.save(review);
+
+        return mapper.toResponseDTO(updated);
+    }
+
+    public void delete(Long id) {
+
+        Review review =
+                repository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Avaliação não encontrada. ID: "
+                                                + id
+                                )
+                        );
+
+        repository.delete(review);
+    }
+}
