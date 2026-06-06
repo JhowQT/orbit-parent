@@ -1,3 +1,51 @@
 spring:
   application:
     name: booking-service
+
+datasource:
+url: jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
+username: rm560601
+password: 040301
+driver-class-name: oracle.jdbc.OracleDriver
+
+jpa:
+hibernate:
+ddl-auto: none
+show-sql: true
+properties:
+hibernate:
+format_sql: true
+dialect: org.hibernate.dialect.OracleDialect
+
+rabbitmq:
+host: localhost
+port: 5672
+username: guest
+password: guest
+
+cache:
+type: simple
+
+server:
+port: 8082
+
+eureka:
+client:
+service-url:
+defaultZone: http://localhost:8761/eureka/
+
+springdoc:
+swagger-ui:
+path: /swagger-ui.html
+
+management:
+endpoints:
+web:
+exposure:
+include: health,info
+
+logging:
+level:
+root: INFO
+com.orbitbook.booking: DEBUG
+org.springframework.cloud.openfeign: DEBUG
