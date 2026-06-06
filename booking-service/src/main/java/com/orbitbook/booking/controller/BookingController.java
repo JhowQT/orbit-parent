@@ -19,7 +19,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookingController {
 
-```
 private final BookingService service;
 
 private final BookingModelAssembler assembler;
@@ -117,6 +116,6 @@ public ResponseEntity<Void> delete(
 
     return ResponseEntity.noContent().build();
 }
-```
+
 
 }

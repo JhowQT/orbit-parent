@@ -8,6 +8,8 @@ import com.orbitbook.booking.exception.ResourceNotFoundException;
 import com.orbitbook.booking.mapper.DestinationTypeMapper;
 import com.orbitbook.booking.repository.DestinationTypeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,90 +21,119 @@ import java.util.List;
 @Transactional
 public class DestinationTypeService {
 
-    private final DestinationTypeRepository repository;
-    private final DestinationTypeMapper mapper;
+private final DestinationTypeRepository repository;
 
-    public DestinationTypeResponseDTO create(
-            DestinationTypeCreateDTO dto) {
+private final DestinationTypeMapper mapper;
 
-        DestinationType destinationType =
-                mapper.toEntity(dto);
+@CacheEvict(
+        value = {
+                "destination-types",
+                "destination-types-all"
+        },
+        allEntries = true
+)
+public DestinationTypeResponseDTO create(
+        DestinationTypeCreateDTO dto) {
 
-        destinationType.setCreatedAt(
-                LocalDateTime.now()
-        );
+    DestinationType destinationType =
+            mapper.toEntity(dto);
 
-        DestinationType saved =
-                repository.save(destinationType);
+    destinationType.setCreatedAt(
+            LocalDateTime.now()
+    );
 
-        return mapper.toResponseDTO(saved);
-    }
+    DestinationType saved =
+            repository.save(destinationType);
 
-    @Transactional(readOnly = true)
-    public DestinationTypeResponseDTO findById(
-            Long id) {
+    return mapper.toResponseDTO(saved);
+}
 
-        DestinationType destinationType =
-                repository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Tipo de destino não encontrado. ID: "
-                                                + id
-                                )
-                        );
+@Cacheable(
+        value = "destination-types",
+        key = "#id"
+)
+@Transactional(readOnly = true)
+public DestinationTypeResponseDTO findById(
+        Long id) {
 
-        return mapper.toResponseDTO(
-                destinationType
-        );
-    }
+    DestinationType destinationType =
+            repository.findById(id)
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Tipo de destino não encontrado. ID: "
+                                            + id
+                            )
+                    );
 
-    @Transactional(readOnly = true)
-    public List<DestinationTypeResponseDTO> findAll() {
+    return mapper.toResponseDTO(
+            destinationType
+    );
+}
 
-        return repository.findAll()
-                .stream()
-                .map(mapper::toResponseDTO)
-                .toList();
-    }
+@Cacheable("destination-types-all")
+@Transactional(readOnly = true)
+public List<DestinationTypeResponseDTO> findAll() {
 
-    public DestinationTypeResponseDTO update(
-            Long id,
-            DestinationTypeUpdateDTO dto) {
+    return repository.findAll()
+            .stream()
+            .map(mapper::toResponseDTO)
+            .toList();
+}
 
-        DestinationType destinationType =
-                repository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Tipo de destino não encontrado. ID: "
-                                                + id
-                                )
-                        );
+@CacheEvict(
+        value = {
+                "destination-types",
+                "destination-types-all"
+        },
+        allEntries = true
+)
+public DestinationTypeResponseDTO update(
+        Long id,
+        DestinationTypeUpdateDTO dto) {
 
-        destinationType.setName(
-                dto.getName()
-        );
+    DestinationType destinationType =
+            repository.findById(id)
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Tipo de destino não encontrado. ID: "
+                                            + id
+                            )
+                    );
 
-        destinationType.setDescription(
-                dto.getDescription()
-        );
+    destinationType.setName(
+            dto.getName()
+    );
 
-        DestinationType updated =
-                repository.save(destinationType);
+    destinationType.setDescription(
+            dto.getDescription()
+    );
 
-        return mapper.toResponseDTO(updated);
-    }
+    DestinationType updated =
+            repository.save(destinationType);
 
-    public void delete(Long id) {
+    return mapper.toResponseDTO(updated);
+}
 
-        DestinationType destinationType =
-                repository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Tipo de destino não encontrado. ID: "
-                                                + id
-                                )
-                        );
+@CacheEvict(
+        value = {
+                "destination-types",
+                "destination-types-all"
+        },
+        allEntries = true
+)
+public void delete(
+        Long id) {
 
-        repository.delete(destinationType);
-    }
+    DestinationType destinationType =
+            repository.findById(id)
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Tipo de destino não encontrado. ID: "
+                                            + id
+                            )
+                    );
+
+    repository.delete(destinationType);
+}
+
 }

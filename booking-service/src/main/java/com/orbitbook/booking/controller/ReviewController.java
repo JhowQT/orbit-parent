@@ -19,7 +19,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReviewController {
 
-```
 private final ReviewService service;
 
 private final ReviewModelAssembler assembler;
@@ -106,6 +105,5 @@ public ResponseEntity<Void> delete(
 
     return ResponseEntity.noContent().build();
 }
-```
 
 }

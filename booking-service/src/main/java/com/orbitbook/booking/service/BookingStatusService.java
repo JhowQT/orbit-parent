@@ -8,6 +8,8 @@ import com.orbitbook.booking.exception.ResourceNotFoundException;
 import com.orbitbook.booking.mapper.BookingStatusMapper;
 import com.orbitbook.booking.repository.BookingStatusRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,90 +21,119 @@ import java.util.List;
 @Transactional
 public class BookingStatusService {
 
-    private final BookingStatusRepository repository;
-    private final BookingStatusMapper mapper;
+private final BookingStatusRepository repository;
 
-    public BookingStatusResponseDTO create(
-            BookingStatusCreateDTO dto) {
+private final BookingStatusMapper mapper;
 
-        BookingStatus bookingStatus =
-                mapper.toEntity(dto);
+@CacheEvict(
+        value = {
+                "booking-status",
+                "booking-status-all"
+        },
+        allEntries = true
+)
+public BookingStatusResponseDTO create(
+        BookingStatusCreateDTO dto) {
 
-        bookingStatus.setCreatedAt(
-                LocalDateTime.now()
-        );
+    BookingStatus bookingStatus =
+            mapper.toEntity(dto);
 
-        BookingStatus saved =
-                repository.save(bookingStatus);
+    bookingStatus.setCreatedAt(
+            LocalDateTime.now()
+    );
 
-        return mapper.toResponseDTO(saved);
-    }
+    BookingStatus saved =
+            repository.save(bookingStatus);
 
-    @Transactional(readOnly = true)
-    public BookingStatusResponseDTO findById(
-            Long id) {
+    return mapper.toResponseDTO(saved);
+}
 
-        BookingStatus bookingStatus =
-                repository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Status da reserva não encontrado. ID: "
-                                                + id
-                                )
-                        );
+@Cacheable(
+        value = "booking-status",
+        key = "#id"
+)
+@Transactional(readOnly = true)
+public BookingStatusResponseDTO findById(
+        Long id) {
 
-        return mapper.toResponseDTO(
-                bookingStatus
-        );
-    }
+    BookingStatus bookingStatus =
+            repository.findById(id)
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Status da reserva não encontrado. ID: "
+                                            + id
+                            )
+                    );
 
-    @Transactional(readOnly = true)
-    public List<BookingStatusResponseDTO> findAll() {
+    return mapper.toResponseDTO(
+            bookingStatus
+    );
+}
 
-        return repository.findAll()
-                .stream()
-                .map(mapper::toResponseDTO)
-                .toList();
-    }
+@Cacheable("booking-status-all")
+@Transactional(readOnly = true)
+public List<BookingStatusResponseDTO> findAll() {
 
-    public BookingStatusResponseDTO update(
-            Long id,
-            BookingStatusUpdateDTO dto) {
+    return repository.findAll()
+            .stream()
+            .map(mapper::toResponseDTO)
+            .toList();
+}
 
-        BookingStatus bookingStatus =
-                repository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Status da reserva não encontrado. ID: "
-                                                + id
-                                )
-                        );
+@CacheEvict(
+        value = {
+                "booking-status",
+                "booking-status-all"
+        },
+        allEntries = true
+)
+public BookingStatusResponseDTO update(
+        Long id,
+        BookingStatusUpdateDTO dto) {
 
-        bookingStatus.setName(
-                dto.getName()
-        );
+    BookingStatus bookingStatus =
+            repository.findById(id)
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Status da reserva não encontrado. ID: "
+                                            + id
+                            )
+                    );
 
-        bookingStatus.setDescription(
-                dto.getDescription()
-        );
+    bookingStatus.setName(
+            dto.getName()
+    );
 
-        BookingStatus updated =
-                repository.save(bookingStatus);
+    bookingStatus.setDescription(
+            dto.getDescription()
+    );
 
-        return mapper.toResponseDTO(updated);
-    }
+    BookingStatus updated =
+            repository.save(bookingStatus);
 
-    public void delete(Long id) {
+    return mapper.toResponseDTO(updated);
+}
 
-        BookingStatus bookingStatus =
-                repository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Status da reserva não encontrado. ID: "
-                                                + id
-                                )
-                        );
+@CacheEvict(
+        value = {
+                "booking-status",
+                "booking-status-all"
+        },
+        allEntries = true
+)
+public void delete(
+        Long id) {
 
-        repository.delete(bookingStatus);
-    }
+    BookingStatus bookingStatus =
+            repository.findById(id)
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Status da reserva não encontrado. ID: "
+                                            + id
+                            )
+                    );
+
+    repository.delete(bookingStatus);
+}
+
 }
