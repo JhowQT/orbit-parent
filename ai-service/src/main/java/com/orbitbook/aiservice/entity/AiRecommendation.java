@@ -22,7 +22,7 @@ public class AiRecommendation {
     @Column(name = "PROMPT_USED", nullable = false, length = 700)
     private String promptUsed;
 
-    @Column(name = "RESPONSE_TEXT", nullable = false, length = 500)
+    @Column(name = "RESPONSE_TEXT", nullable = false, length = 4000)
     private String responseText;
 
     @Column(name = "MODEL_USED", nullable = false, length = 50)

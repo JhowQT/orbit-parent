@@ -6,7 +6,6 @@ import com.orbitbook.aiservice.dto.RecommendationResponseDTO;
 import com.orbitbook.aiservice.entity.AiRecommendation;
 import com.orbitbook.aiservice.feign.AuthClient;
 import com.orbitbook.aiservice.feign.BookingClient;
-import com.orbitbook.aiservice.feign.dto.UserResponseDTO;
 import com.orbitbook.aiservice.mapper.AiRecommendationMapper;
 import com.orbitbook.aiservice.repository.AiRecommendationRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,19 +34,18 @@ public class AiRecommendationService {
     public RecommendationResponseDTO generateRecommendation(
             RecommendationRequestDTO request) {
 
-        UserResponseDTO user =
-                authClient.findUserById(
-                        request.getUserId()
-                );
-
-        if (user == null) {
-            throw new RuntimeException(
-                    "Usuário não encontrado."
-            );
-        }
+        authClient.findUserById(
+                request.getUserId()
+        );
 
         List<DestinationDTO> destinations =
                 bookingClient.getAllDestinations();
+
+        if (destinations.isEmpty()) {
+            throw new RuntimeException(
+                    "Nenhum destino disponível para recomendação."
+            );
+        }
 
         StringBuilder promptBuilder =
                 new StringBuilder();
@@ -94,6 +92,12 @@ public class AiRecommendationService {
                         .user(promptBuilder.toString())
                         .call()
                         .content();
+
+        if (response == null || response.isBlank()) {
+            throw new RuntimeException(
+                    "A IA não retornou nenhuma recomendação."
+            );
+        }
 
         AiRecommendation recommendation =
                 AiRecommendation.builder()
