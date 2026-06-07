@@ -1,4 +1,4 @@
-package com.orbitbook.aiservice.dto;
+package com.orbitbook.aiservice.feign.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,17 +13,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RecommendationResponseDTO {
+public class UserResponseDTO {
 
-    private Long id;
+    private Long idUsersOrbit;
 
-    private String promptUsed;
+    private String name;
 
-    private String responseText;
-
-    private String modelUsed;
+    private String email;
 
     private LocalDateTime createdAt;
-
-    private Long userId;
 }
