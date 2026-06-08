@@ -1,11 +1,8 @@
 package com.orbitbook.booking.exception;
 
-public class BookingNotFoundException
-        extends RuntimeException {
+public class ResourceNotFoundException extends RuntimeException {
 
-    public BookingNotFoundException(
-            String message) {
-
+    public ResourceNotFoundException(String message) {
         super(message);
     }
 }

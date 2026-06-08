@@ -1,6 +1,10 @@
 package com.orbitbook.booking.config;
 
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -60,5 +64,24 @@ public class RabbitConfig {
                 .bind(paymentQueue)
                 .to(orbitbookExchange)
                 .with(PAYMENT_ROUTING_KEY);
+    }
+
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new JacksonJsonMessageConverter();
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(
+            ConnectionFactory connectionFactory) {
+
+        RabbitTemplate template =
+                new RabbitTemplate(connectionFactory);
+
+        template.setMessageConverter(
+                jsonMessageConverter()
+        );
+
+        return template;
     }
 }

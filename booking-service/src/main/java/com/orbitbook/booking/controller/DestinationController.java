@@ -1,6 +1,7 @@
 package com.orbitbook.booking.controller;
 
 import com.orbitbook.booking.dto.destination.DestinationCreateDTO;
+import com.orbitbook.booking.dto.destination.DestinationPageDTO;
 import com.orbitbook.booking.dto.destination.DestinationResponseDTO;
 import com.orbitbook.booking.dto.destination.DestinationUpdateDTO;
 import com.orbitbook.booking.hateoas.DestinationModelAssembler;
@@ -11,6 +12,8 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 
 import java.util.List;
 
@@ -66,6 +69,11 @@ public ResponseEntity<
     );
 }
 
+@GetMapping("/all")
+public ResponseEntity<List<DestinationResponseDTO>> findAllPlain() {
+    return ResponseEntity.ok(service.findAll());
+}
+
 @GetMapping("/search")
 public ResponseEntity<
         CollectionModel<
@@ -94,6 +102,20 @@ public ResponseEntity<EntityModel<DestinationResponseDTO>> update(
             assembler.toModel(
                     service.update(id, dto)
             )
+    );
+}
+
+@GetMapping("/page")
+public ResponseEntity<DestinationPageDTO> findFiltered(
+        @RequestParam(required = false) String tipo,
+        @RequestParam(required = false) BigDecimal precoMin,
+        @RequestParam(required = false) BigDecimal precoMax,
+        @RequestParam(required = false) String busca,
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int limit) {
+
+    return ResponseEntity.ok(
+            service.findFiltered(tipo, precoMin, precoMax, busca, page, limit)
     );
 }
 

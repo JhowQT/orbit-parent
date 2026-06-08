@@ -15,14 +15,15 @@ import java.time.LocalDateTime;
 public class Review {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_reviews")
+    @SequenceGenerator(name = "seq_reviews", sequenceName = "SEQ_REVIEWS", allocationSize = 1)
     @Column(name = "ID_REVIEWS")
     private Long idReviews;
 
     @Column(name = "RATING")
     private Integer rating;
 
-    @Column(name = "COMMENT", length = 300)
+    @Column(name = "COMENTARIO", length = 300)
     private String comment;
 
     @Column(name = "CREATED_AT")

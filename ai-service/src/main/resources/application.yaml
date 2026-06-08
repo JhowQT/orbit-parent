@@ -3,9 +3,9 @@ spring:
     name: ai-service
 
   datasource:
-    url: jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
-    username: rm560601
-    password: 040301
+    url: jdbc:oracle:thin:@oracle.fiap.com.br:1521/orcl
+    username: rm560077
+    password: 300903
     driver-class-name: oracle.jdbc.OracleDriver
 
   jpa:
@@ -20,12 +20,15 @@ spring:
   ai:
     google:
       genai:
-        api-key: SUA_CHAVE_GEMINI
-
+        api-key: ${GEMINI_API_KEY}
+        embedding:
+          model: text-embedding-004
 server:
   port: 8083
 
 eureka:
+  instance:
+    prefer-ip-address: true
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/

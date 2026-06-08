@@ -3,9 +3,11 @@ package com.orbitbook.booking.service;
 import com.orbitbook.booking.dto.review.ReviewCreateDTO;
 import com.orbitbook.booking.dto.review.ReviewResponseDTO;
 import com.orbitbook.booking.dto.review.ReviewUpdateDTO;
+import com.orbitbook.booking.dto.review.ReviewWithUserDTO;
 import com.orbitbook.booking.entity.Booking;
 import com.orbitbook.booking.entity.Review;
 import com.orbitbook.booking.exception.ResourceNotFoundException;
+import com.orbitbook.booking.feign.AuthClient;
 import com.orbitbook.booking.mapper.ReviewMapper;
 import com.orbitbook.booking.repository.BookingRepository;
 import com.orbitbook.booking.repository.ReviewRepository;
@@ -26,6 +28,8 @@ public class ReviewService {
     private final BookingRepository bookingRepository;
 
     private final ReviewMapper mapper;
+
+    private final AuthClient authClient;
 
     public ReviewResponseDTO createReview(
             ReviewCreateDTO dto) {
@@ -105,6 +109,34 @@ public class ReviewService {
                 )
                 .stream()
                 .map(mapper::toResponseDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReviewWithUserDTO> findByDestination(
+            Long destinationId) {
+
+        return repository.findByDestinationId(destinationId)
+                .stream()
+                .map(review -> {
+                    Long userId = review.getBooking().getUserId();
+                    String userName;
+                    try {
+                        userName = authClient.findUserById(userId).getName();
+                    } catch (Exception e) {
+                        userName = "Desconhecido";
+                    }
+                    return ReviewWithUserDTO.builder()
+                            .idReviews(review.getIdReviews())
+                            .rating(review.getRating())
+                            .comment(review.getComment())
+                            .createdAt(review.getCreatedAt())
+                            .bookingId(review.getBooking().getIdBookings())
+                            .userId(userId)
+                            .userName(userName)
+                            .destinationId(destinationId)
+                            .build();
+                })
                 .toList();
     }
 

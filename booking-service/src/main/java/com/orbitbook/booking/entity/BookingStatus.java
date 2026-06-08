@@ -20,7 +20,8 @@ import java.util.List;
 public class BookingStatus {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_booking_statuses")
+    @SequenceGenerator(name = "seq_booking_statuses", sequenceName = "SEQ_BOOKING_STATUSES", allocationSize = 1)
     @Column(name = "ID_BOOKING_STATUSES")
     private Long idBookingStatuses;
 
