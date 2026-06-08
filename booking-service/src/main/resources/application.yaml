@@ -10,6 +10,8 @@ spring:
     hikari:
       connection-test-query: SELECT 1 FROM DUAL
       keepalive-time: 60000
+      maximum-pool-size: 2
+      minimum-idle: 1
 
   jpa:
     hibernate:

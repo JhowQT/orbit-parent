@@ -7,6 +7,9 @@ spring:
     username: rm560077
     password: 300903
     driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
 
   jpa:
     hibernate:

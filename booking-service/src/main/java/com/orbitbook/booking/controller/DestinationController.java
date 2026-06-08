@@ -69,7 +69,7 @@ public ResponseEntity<
     );
 }
 
-@GetMapping("/all")
+@GetMapping(value = "/all", produces = "application/json")
 public ResponseEntity<List<DestinationResponseDTO>> findAllPlain() {
     return ResponseEntity.ok(service.findAll());
 }
