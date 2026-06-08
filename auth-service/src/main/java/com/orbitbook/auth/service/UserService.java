@@ -49,4 +49,16 @@ public class UserService {
                 .map(userMapper::toUserResponseDTO)
                 .toList();
     }
+
+    public void delete(Long id) {
+
+        UserOrbit user =
+                userRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Usuário não encontrado"
+                                ));
+
+        userRepository.delete(user);
+    }
 }

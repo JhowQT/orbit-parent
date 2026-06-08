@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 public class UserOrbit {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_users_orbit")
+    @SequenceGenerator(name = "seq_users_orbit", sequenceName = "SEQ_USERS_ORBIT", allocationSize = 1)
     @Column(name = "ID_USERS_ORBIT")
     private Long idUsersOrbit;
 

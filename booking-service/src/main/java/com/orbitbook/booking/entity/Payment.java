@@ -16,7 +16,8 @@ import java.time.LocalDateTime;
 public class Payment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_payments")
+    @SequenceGenerator(name = "seq_payments", sequenceName = "SEQ_PAYMENTS", allocationSize = 1)
     @Column(name = "ID_PAYMENTS")
     private Long idPayments;
 
@@ -29,7 +30,7 @@ public class Payment {
     @Column(name = "STATUS", nullable = false, length = 100)
     private String status;
 
-    @Column(name = "PAID_AT", nullable = false)
+    @Column(name = "PAID_AT")
     private LocalDateTime paidAt;
 
     @ManyToOne(fetch = FetchType.EAGER)

@@ -3,6 +3,7 @@ package com.orbitbook.booking.controller;
 import com.orbitbook.booking.dto.review.ReviewCreateDTO;
 import com.orbitbook.booking.dto.review.ReviewResponseDTO;
 import com.orbitbook.booking.dto.review.ReviewUpdateDTO;
+import com.orbitbook.booking.dto.review.ReviewWithUserDTO;
 import com.orbitbook.booking.hateoas.ReviewModelAssembler;
 import com.orbitbook.booking.service.ReviewService;
 import lombok.RequiredArgsConstructor;
@@ -94,6 +95,15 @@ public ResponseEntity<EntityModel<ReviewResponseDTO>> update(
             assembler.toModel(
                     service.update(id, dto)
             )
+    );
+}
+
+@GetMapping("/destination/{destinationId}")
+public ResponseEntity<List<ReviewWithUserDTO>> findByDestination(
+        @PathVariable Long destinationId) {
+
+    return ResponseEntity.ok(
+            service.findByDestination(destinationId)
     );
 }
 

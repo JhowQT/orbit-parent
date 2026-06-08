@@ -31,4 +31,6 @@ public class DestinationResponseDTO {
     private Long destinationTypeId;
 
     private String destinationTypeName;
+
+    private AvaliacaoResumoDTO avaliacao;
 }
