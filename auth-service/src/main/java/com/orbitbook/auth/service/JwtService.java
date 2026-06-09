@@ -48,8 +48,15 @@ public class JwtService {
 
     public String generateToken(UserDetails userDetails) {
 
+        String role = userDetails.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(a -> a.getAuthority())
+                .orElse("VIAJANTE");
+
         return Jwts.builder()
                 .subject(userDetails.getUsername())
+                .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(
                         new Date(

@@ -3,10 +3,13 @@ spring:
     name: auth-service
 
   datasource:
-    url: jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
-    username: rm560601
-    password: 040301
+    url: jdbc:oracle:thin:@oracle.fiap.com.br:1521/orcl
+    username: rm560077
+    password: 300903
     driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
 
   jpa:
     hibernate:
@@ -21,6 +24,8 @@ server:
   port: 8081
 
 eureka:
+  instance:
+    prefer-ip-address: true
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/

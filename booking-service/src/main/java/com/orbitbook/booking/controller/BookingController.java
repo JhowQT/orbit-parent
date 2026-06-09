@@ -2,6 +2,7 @@ package com.orbitbook.booking.controller;
 
 import com.orbitbook.booking.dto.booking.BookingCreateDTO;
 import com.orbitbook.booking.dto.booking.BookingResponseDTO;
+import com.orbitbook.booking.dto.booking.BookingStatusPatchDTO;
 import com.orbitbook.booking.dto.booking.BookingUpdateDTO;
 import com.orbitbook.booking.hateoas.BookingModelAssembler;
 import com.orbitbook.booking.service.BookingService;
@@ -104,6 +105,18 @@ public ResponseEntity<EntityModel<BookingResponseDTO>> cancelBooking(
     return ResponseEntity.ok(
             assembler.toModel(
                     service.cancelBooking(id)
+            )
+    );
+}
+
+@PatchMapping("/{id}/status")
+public ResponseEntity<EntityModel<BookingResponseDTO>> updateStatus(
+        @PathVariable Long id,
+        @RequestBody BookingStatusPatchDTO dto) {
+
+    return ResponseEntity.ok(
+            assembler.toModel(
+                    service.updateStatus(id, dto.getStatusName())
             )
     );
 }

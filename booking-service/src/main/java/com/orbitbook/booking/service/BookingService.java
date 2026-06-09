@@ -1,3 +1,29 @@
+package com.orbitbook.booking.service;
+
+import com.orbitbook.booking.dto.booking.BookingCreateDTO;
+import com.orbitbook.booking.dto.booking.BookingResponseDTO;
+import com.orbitbook.booking.dto.booking.BookingUpdateDTO;
+import com.orbitbook.booking.entity.Booking;
+import com.orbitbook.booking.entity.BookingStatus;
+import com.orbitbook.booking.entity.Destination;
+import com.orbitbook.booking.exception.ResourceNotFoundException;
+import com.orbitbook.booking.feign.AiClient;
+import com.orbitbook.booking.feign.AuthClient;
+import com.orbitbook.booking.feign.dto.UserResponseDTO;
+import com.orbitbook.booking.mapper.BookingMapper;
+import com.orbitbook.booking.messaging.BookingProducer;
+import com.orbitbook.booking.messaging.dto.BookingCreatedEvent;
+import com.orbitbook.booking.repository.BookingRepository;
+import com.orbitbook.booking.repository.BookingStatusRepository;
+import com.orbitbook.booking.repository.DestinationRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -85,10 +111,10 @@ public class BookingService {
 
         BookingStatus bookingStatus =
                 bookingStatusRepository
-                        .findByName("PENDING")
+                        .findByName("PENDENTE")
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
-                                        "Status PENDING não encontrado."
+                                        "Status PENDENTE não encontrado."
                                 )
                         );
 
@@ -294,7 +320,7 @@ public class BookingService {
                                 )
                         );
 
-        if ("CANCELLED".equalsIgnoreCase(
+        if ("CANCELADO".equalsIgnoreCase(
                 booking.getBookingStatus()
                         .getName())) {
 
@@ -306,11 +332,11 @@ public class BookingService {
         BookingStatus cancelledStatus =
                 bookingStatusRepository
                         .findByName(
-                                "CANCELLED"
+                                "CANCELADO"
                         )
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
-                                        "Status CANCELLED não encontrado."
+                                        "Status CANCELADO não encontrado."
                                 )
                         );
 
@@ -326,6 +352,36 @@ public class BookingService {
         return mapper.toResponseDTO(
                 updated
         );
+    }
+
+    public BookingResponseDTO updateStatus(
+            Long id,
+            String statusName) {
+
+        Booking booking =
+                repository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Reserva não encontrada. ID: "
+                                                + id
+                                )
+                        );
+
+        BookingStatus status =
+                bookingStatusRepository
+                        .findByName(statusName)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Status não encontrado: "
+                                                + statusName
+                                )
+                        );
+
+        booking.setBookingStatus(status);
+
+        Booking updated = repository.save(booking);
+
+        return mapper.toResponseDTO(updated);
     }
 
     public void delete(

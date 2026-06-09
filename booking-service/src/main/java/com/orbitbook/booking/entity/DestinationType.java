@@ -20,7 +20,8 @@ import java.util.List;
 public class DestinationType {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_destination_types")
+    @SequenceGenerator(name = "seq_destination_types", sequenceName = "SEQ_DESTINATION_TYPES", allocationSize = 1)
     @Column(name = "ID_DESTINATION_TYPES")
     private Long idDestinationTypes;
 

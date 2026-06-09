@@ -1,17 +1,71 @@
 spring:
   application:
     name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: auth-public
+              uri: lb://auth-service
+              predicates:
+                - Path=/auth/**
+
+            - id: auth-users
+              uri: lb://auth-service
+              predicates:
+                - Path=/users/**
+
+            - id: booking-bookings
+              uri: lb://booking-service
+              predicates:
+                - Path=/bookings/**
+
+            - id: booking-destinations
+              uri: lb://booking-service
+              predicates:
+                - Path=/destinations/**
+
+            - id: booking-passengers
+              uri: lb://booking-service
+              predicates:
+                - Path=/passengers/**
+
+            - id: booking-payments
+              uri: lb://booking-service
+              predicates:
+                - Path=/payments/**
+
+            - id: booking-reviews
+              uri: lb://booking-service
+              predicates:
+                - Path=/reviews/**
+
+            - id: ai-service
+              uri: lb://ai-service
+              predicates:
+                - Path=/ai/**
 
 server:
   port: 8080
 
 eureka:
+  instance:
+    prefer-ip-address: true
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secret: orbitbook-secret-key-orbitbook-secret-key-2026
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: "*"
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web.servlet.handler: DEBUG

@@ -174,7 +174,7 @@ public class PaymentService {
                                 )
                         );
 
-        if ("APPROVED".equalsIgnoreCase(
+        if ("APROVADO".equalsIgnoreCase(
                 payment.getStatus())) {
 
             throw new InvalidPaymentException(
@@ -183,7 +183,7 @@ public class PaymentService {
         }
 
         payment.setStatus(
-                "APPROVED"
+                "APROVADO"
         );
 
         payment.setPaidAt(
@@ -199,7 +199,7 @@ public class PaymentService {
         BookingStatus confirmedStatus =
                 bookingStatusRepository
                         .findByName(
-                                "CONFIRMED"
+                                "CONFIRMADO"
                         )
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(

@@ -1,11 +1,12 @@
 package com.orbitbook.aiservice.service;
 
+import com.orbitbook.aiservice.ai.DestinationTools;
+import com.orbitbook.aiservice.ai.SemanticSearchService;
 import com.orbitbook.aiservice.dto.DestinationDTO;
 import com.orbitbook.aiservice.dto.RecommendationRequestDTO;
 import com.orbitbook.aiservice.dto.RecommendationResponseDTO;
 import com.orbitbook.aiservice.entity.AiRecommendation;
 import com.orbitbook.aiservice.feign.AuthClient;
-import com.orbitbook.aiservice.feign.BookingClient;
 import com.orbitbook.aiservice.mapper.AiRecommendationMapper;
 import com.orbitbook.aiservice.repository.AiRecommendationRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,76 +23,53 @@ import java.util.List;
 public class AiRecommendationService {
 
     private final AiRecommendationRepository repository;
-
     private final AiRecommendationMapper mapper;
-
-    private final BookingClient bookingClient;
-
     private final AuthClient authClient;
-
     private final ChatClient chatClient;
+    private final SemanticSearchService semanticSearchService;
+    private final DestinationTools destinationTools;
 
     public RecommendationResponseDTO generateRecommendation(
             RecommendationRequestDTO request) {
 
-        authClient.findUserById(
-                request.getUserId()
-        );
+        authClient.findUserById(request.getUserId());
 
-        List<DestinationDTO> destinations =
-                bookingClient.getAllDestinations();
+        // RAG: busca semântica — recupera os 3 destinos mais
+        // relevantes para o prompt, em vez de enviar todos ao modelo
+        List<DestinationDTO> relevantDestinations =
+                semanticSearchService.findRelevant(
+                        request.getPrompt(), 3
+                );
 
-        if (destinations.isEmpty()) {
-            throw new RuntimeException(
-                    "Nenhum destino disponível para recomendação."
-            );
-        }
+        String ragContext = buildRagContext(relevantDestinations);
 
-        StringBuilder promptBuilder =
-                new StringBuilder();
+        String systemPrompt = """
+                Você é um especialista em turismo espacial da plataforma OrbitBook.
+                Use os destinos fornecidos como contexto principal.
+                Se precisar de mais informações, utilize as ferramentas disponíveis.
+                Seja objetivo e personalizado na sua recomendação.
+                """;
 
-        promptBuilder.append("""
-                Você é um especialista em turismo da plataforma OrbitBook.
+        String userPrompt = String.format(
+                """
+                Contexto — destinos mais relevantes para esta solicitação:
+                %s
 
-                Analise os destinos disponíveis abaixo e recomende os mais adequados para o usuário.
-
-                Destinos disponíveis:
-
-                """);
-
-        for (DestinationDTO destination : destinations) {
-
-            promptBuilder.append("Destino: ")
-                    .append(destination.getName())
-                    .append("\n");
-
-            promptBuilder.append("Descrição: ")
-                    .append(destination.getDescription())
-                    .append("\n");
-
-            promptBuilder.append("Preço Base: ")
-                    .append(destination.getBasePrice())
-                    .append("\n");
-
-            promptBuilder.append("Capacidade: ")
-                    .append(destination.getCapacity())
-                    .append("\n\n");
-        }
-
-        promptBuilder.append("""
-                Solicitação do usuário:
-
-                """);
-
-        promptBuilder.append(
+                Solicitação do usuário: %s
+                """,
+                ragContext,
                 request.getPrompt()
         );
 
-        String response =
-                chatClient.prompt()
-                        .user(promptBuilder.toString())
-                        .call()
-                        .content();
+        // Tooling: o Gemini pode chamar DestinationTools autonomamente
+        // durante a geração se precisar de dados adicionais (ex: filtrar por
+        // orçamento, buscar histórico do usuário)
+        String response = chatClient.prompt()
+                .system(systemPrompt)
+                .user(userPrompt)
+                .tools(destinationTools)
+                .call()
+                .content();
 
         if (response == null || response.isBlank()) {
             throw new RuntimeException(
@@ -99,33 +77,29 @@ public class AiRecommendationService {
             );
         }
 
-        AiRecommendation recommendation =
-                AiRecommendation.builder()
-                        .promptUsed(
-                                request.getPrompt()
-                        )
-                        .responseText(
-                                response
-                        )
-                        .modelUsed(
-                                "gemini-2.5-flash"
-                        )
-                        .createdAt(
-                                LocalDateTime.now()
-                        )
-                        .userId(
-                                request.getUserId()
-                        )
-                        .build();
+        AiRecommendation recommendation = AiRecommendation.builder()
+                .promptUsed(request.getPrompt())
+                .responseText(response)
+                .modelUsed("gemini-2.5-flash")
+                .createdAt(LocalDateTime.now())
+                .userId(request.getUserId())
+                .build();
 
-        recommendation =
-                repository.save(
-                        recommendation
-                );
+        recommendation = repository.save(recommendation);
 
-        return mapper.toResponseDTO(
-                recommendation
-        );
+        return mapper.toResponseDTO(recommendation);
+    }
+
+    private String buildRagContext(List<DestinationDTO> destinations) {
+        StringBuilder sb = new StringBuilder();
+        for (DestinationDTO d : destinations) {
+            sb.append("- ").append(d.getName())
+              .append(": ").append(d.getDescription())
+              .append(" | Preço: R$ ").append(d.getBasePrice())
+              .append(" | Capacidade: ").append(d.getCapacity())
+              .append(" pessoas\n");
+        }
+        return sb.toString();
     }
 
     @Transactional(readOnly = true)
